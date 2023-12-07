@@ -2,7 +2,7 @@ from twisted.internet import reactor, defer, task
 
 from louie import dispatcher
 
-from mdb_device import MDBDevice
+from .mdb_device import MDBDevice
 from ..protocol.mdb import log_result, encode, ACK
 
 import logging
@@ -98,7 +98,9 @@ class Changer(MDBDevice):
         mask = 0
         for c in coins:
             mask |= 0x01 << c
-        self.coin_mask = hex(mask)[2:].zfill(4).decode('hex')
+        # self.coin_mask = hex(mask)[2:].zfill(4).decode('hex')
+        self.coin_mask = bytes.fromhex(hex(mask)[2:].zfill(4))
+
 
     def get_coin_count(self, coin):
         return self._coin_count[coin]

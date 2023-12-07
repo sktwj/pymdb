@@ -3,7 +3,7 @@ import logging
 from twisted.internet import defer, reactor, task
 from twisted.protocols.basic import LineReceiver
 
-from exceptions import TimeoutException
+from .exceptions import TimeoutException
 
 logger = logging.getLogger('pymdb')
 
@@ -23,11 +23,11 @@ def log_result(f):
         clazz = ''
         if self.__class__:
             clazz = self.__class__.__name__
-        logger.debug("{}.{} ->".format(clazz, f.func_name))
+        logger.debug("{}.{} ->".format(clazz, f.__name__))
         try:
             result = yield f(self, *args, **kwargs)
             str_data = pretty(result)
-            logger.debug("{}.{} <- {}".format(clazz, f.func_name, str_data))
+            logger.debug("{}.{} <- {}".format(clazz, f.__name__, str_data))
             defer.returnValue(result)
         except Exception as e:
             logger.error("pretty_log error: " + str(e))
@@ -46,7 +46,7 @@ class MDB(LineReceiver):
         self.req = None
         self.setRawMode()
         self.lock = defer.DeferredLock()
-        self.data = ''
+        self.data = bytearray()
 
     def connectionMade(self):
         logger.debug("Connected")
@@ -60,7 +60,7 @@ class MDB(LineReceiver):
 
     @defer.inlineCallbacks
     def _call(self, req):
-        self.data = ''
+        self.data = bytearray()
         if self.req:
             raise ValueError(
                 "call %s while %s request in progress" % (
